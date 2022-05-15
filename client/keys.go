@@ -8,6 +8,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/go-bip39"
+	ethhd "github.com/tharsis/ethermint/crypto/hd"
+	ethermint "github.com/tharsis/ethermint/types"
 )
 
 func (cc *ChainClient) CreateKeystore(path string) error {
@@ -106,7 +108,14 @@ func (cc *ChainClient) KeyAddOrRestore(keyName string, coinType uint32, mnemonic
 		}
 	}
 
-	info, err := cc.Keybase.NewAccount(keyName, mnemonicStr, "", hd.CreateHDPath(coinType, 0, 0).String(), hd.Secp256k1)
+	var algo keyring.SignatureAlgo
+	if coinType == ethermint.Bip44CoinType {
+		algo = ethhd.EthSecp256k1
+	} else {
+		algo = hd.Secp256k1
+	}
+
+	info, err := cc.Keybase.NewAccount(keyName, mnemonicStr, "", hd.CreateHDPath(coinType, 0, 0).String(), algo)
 	if err != nil {
 		return nil, err
 	}
